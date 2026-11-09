@@ -190,6 +190,12 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:34}
 .rem ol{color:var(--muted);font-size:13px;line-height:1.5;padding-left:18px;margin:4px 0 0}
 .foot{text-align:center;color:var(--muted);font-size:12px;margin:18px 0}
 .foot button{background:none;border:0;color:var(--violet);font:600 12px Inter;text-decoration:underline}
+.acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}
+.chip{font:600 11px Inter;padding:5px 10px;border:1px solid #3a3655;background:#0f0e17;color:var(--violet);text-decoration:none;border-radius:20px;cursor:pointer}
+.chip.go{color:#fff;background:#1f8f5a;border-color:#1f8f5a}
+.task.done .acts,.task.done .tip{display:none}
+.tip{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.4;display:none}
+.tip.show{display:block}
 </style>
 </head>
 <body>
@@ -375,6 +381,48 @@ const PLAN={
    ["Before bed",BED("sun",[T("sun-6","6-a-side tomorrow, 8pm Baldock: kit and lift sorted",10)],{noFoot:1,alarm:"Alarm set early for Sport 9:00, phone on charge"})]
   ]}
 };
+/* ---------- shortcuts and help on quests ---------- */
+const EVID_TIP="Counts as evidence: flashcards, mind maps, knowledge organisers, practice questions, video notes or a reflective diary. In your folder or on Teams.";
+const LIFTS={"mon-6":"6-a-side in Baldock at 8pm tonight","wed-match":"my match on Saturday","thu-train":"football training in Royston at 7 tonight","sat-lift":"work at Between Buns tomorrow, starting at 11"};
+function decorate(t){
+  const id=t.id,suf=id.split("-").slice(1).join("-"),a=[];
+  if(suf==="out")a.push("trains","late");
+  if(suf==="teams"||["tue-psy","thu-evid","fri-evid"].indexOf(id)>-1)a.push("teams");
+  if(suf==="stay")a.push("myweek","week");
+  if(suf==="study"||id==="sat-block")a.push("timer","log");
+  if(suf==="sis")a.push("timer");
+  if(id==="fri-plan"||id==="sun-sis")a.push("log");
+  if(LIFTS[id]){a.push("lift");t.liftFor=LIFTS[id];}
+  if(suf==="pad"||suf==="grab")t.tip="The launch pad is one spot by the front door for your bag, keys, railcard, wallet, charger and headphones.";
+  if(["tue-sis","thu-sis","thu-evid","fri-evid"].indexOf(id)>-1)t.tip=EVID_TIP;
+  if(suf==="stay")t.tip="Usual routine: a week with Pez or Grace (you pick the house), then a week at Dad & Luce's, swapping on Tuesday evening.";
+  if(suf==="foot"||id==="wed-kit")t.tip="If your kit is at the other house, sort it tonight: ask for it to come over, or pack it at the swap.";
+  t.acts=a;
+}
+Object.keys(PLAN).forEach(d=>PLAN[d].secs.forEach(s=>s[1].forEach(decorate)));
+function chipsFor(t){
+  const L=(label,href,go)=>'<a class="chip'+(go?" go":"")+'" href="'+esc(href)+'" target="_blank" rel="noopener">'+label+'</a>';
+  const B=(label,act)=>'<button class="chip" data-act="'+act+'">'+label+'</button>';
+  const wa=tx=>"https://wa.me/?text="+encodeURIComponent(tx);
+  const out=[];
+  (t.acts||[]).forEach(k=>{
+    if(k==="trains")out.push(L("Live trains","https://www.nationalrail.co.uk/live-trains/departures/AWM/"));
+    if(k==="late")out.push(L("Text: running late",wa("Running late, getting the next train. I'll text when I'm on it."),1));
+    if(k==="teams")out.push(L("Open Teams","https://teams.microsoft.com/"));
+    if(k==="myweek")out.push(L("Send My week",wa(weekMsg()),1));
+    if(k==="lift")out.push(L("Ask for a lift",wa("Can anyone do a lift for "+t.liftFor+"?"),1));
+    if(k==="week")out.push(B("Week tab","week"));
+    if(k==="log")out.push(B("Quest log","log"));
+    if(k==="timer")out.push(B("Start 25 min timer","timer"));
+  });
+  if(t.tip)out.push(B("Help","tip"));
+  return (out.length?'<div class="acts">'+out.join("")+'</div>':"")+(t.tip?'<div class="tip">'+esc(t.tip)+'</div>':"");
+}
+function showTab(v){
+  document.querySelectorAll(".tabs button").forEach(x=>x.classList.toggle("on",x.dataset.v===v));
+  document.querySelectorAll("section").forEach(s=>s.classList.toggle("on",s.id==="v-"+v));
+  window.scrollTo(0,0);
+}
 function tasksFor(dw){const out=[];PLAN[dw].secs.forEach(s=>s[1].forEach(t=>out.push(t)));return out;}
 
 const LEVELS=[[0,"E-Rank","Rookie"],[200,"D-Rank","Apprentice"],[500,"C-Rank","Adept"],[900,"B-Rank","Vanguard"],[1400,"A-Rank","Elite"],[2000,"A+ Rank","Ace"],[2800,"S-Rank","Master"],[3800,"S+ Rank","Legend"],[5000,"SS-Rank","Final Form"]];
@@ -491,7 +539,7 @@ function renderToday(){
     const got=sec[1].filter(t=>done[t.id]).length;
     out+='<div class="sec"><h3>'+esc(sec[0])+' quests<span>'+got+'/'+sec[1].length+'</span></h3>';
     sec[1].forEach(t=>{
-      out+='<div class="task '+(done[t.id]?"done ":"")+(t.key?"key ":"")+(editable?"":"locked")+'" data-id="'+t.id+'"><div class="box"></div><div class="txt">'+esc(t.text)+'</div><div class="p">+'+t.p+'</div></div>';
+      out+='<div class="task '+(done[t.id]?"done ":"")+(t.key?"key ":"")+(editable?"":"locked")+'" data-id="'+t.id+'"><div class="box"></div><div class="txt">'+esc(t.text)+chipsFor(t)+'</div><div class="p">+'+t.p+'</div></div>';
     });
     out+="</div>";
   });
@@ -692,6 +740,16 @@ document.querySelector(".tabs").addEventListener("click",e=>{
 });
 $("dayPicker").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;selKey=b.dataset.k;renderToday();});
 $("secs").addEventListener("click",e=>{
+  const chip=e.target.closest(".chip");
+  if(chip){
+    if(chip.tagName==="A")return;
+    e.preventDefault();
+    const act=chip.dataset.act;
+    if(act==="tip"){const tp=chip.closest(".txt").querySelector(".tip");if(tp)tp.classList.toggle("show");}
+    else if(act==="week"||act==="log")showTab(act);
+    else if(act==="timer"){if(!(focusEnd&&Date.now()<focusEnd)){focusEnd=Date.now()+FOCUS_MS;try{localStorage.setItem("archFocusEnd",focusEnd);}catch(x){}}renderFocus();window.scrollTo({top:$("focus").offsetTop-70,behavior:"smooth"});}
+    return;
+  }
   const el=e.target.closest(".task");if(!el||!canTick(selKey))return;
   const id=el.dataset.id,k=selKey;
   const beforeTP=totalPoints(),before=score(k);
