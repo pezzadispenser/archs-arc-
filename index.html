@@ -309,12 +309,13 @@ const EXAM="2027-01-08";
 /* ---------- the plan ---------- */
 function T(id,text,p,f){return Object.assign({id:id,text:text,p:p||10},f||{});}
 const FOOT=(d)=>T(d+"-foot","Football stuff (boots, shin pads, red top) is in the house I'm in tonight",10);
-const BED=(d,extra)=>extra.concat([
+// Before bed, in the order you'd actually do it: extras, bag, clothes, football stuff, then alarm last
+const BED=(d,extra,o)=>{o=o||{};const out=extra.concat([
   T(d+"-bag","Bag packed: folder, laptop, charger, railcard, keys, wallet",10),
-  T(d+"-clothes","Clothes out for tomorrow",5),
-  T(d+"-alarm","Alarm set, phone on charge",5),
-  FOOT(d)
-]);
+  T(d+"-clothes","Clothes out for tomorrow",5)]);
+  if(!o.noFoot)out.push(FOOT(d));
+  out.push(T(d+"-alarm",o.alarm||"Alarm set, phone on charge",5));
+  return out;};
 const AFTER=(d,extra)=>[
   T(d+"-pad","Bag straight to the launch pad",5),
   T(d+"-teams","Check Teams, new deadlines into my calendar",10),
@@ -324,54 +325,54 @@ const WASH=(d)=>T(d+"-wash","Washing up after dinner",15);
 const PLAN={
  1:{intro:"Sport 9:00 (G5), Business 10:50 (G18), Psychology 12:25 (G118). Done 13:55. 6-a-side in Baldock at 8pm.",
   secs:[
-   ["Morning",[T("mon-up","Up by 7:18",10),T("mon-out","Out of the door by 8:08 for the 8:18 (backup 8:09)",25,{ontime:1,key:1}),T("mon-grab","Grab the bag from the launch pad",5)]],
+   ["Morning",[T("mon-up","Up by 7:18",10),T("mon-grab","Grab the bag from the launch pad",5),T("mon-out","Out of the door by 8:08 for the 8:18 (backup 8:09)",25,{ontime:1,key:1})]],
    ["After college",AFTER("mon",[T("mon-study","30 minutes on whatever is due next",20,{key:1}),T("mon-6","6-a-side kit and lift sorted for 8pm",10)])],
    ["House jobs",[WASH("mon")]],
    ["Before bed",BED("mon",[T("mon-swap","Swapping tomorrow evening? Start the swap bag",10)])]
   ]},
  2:{intro:"Study period 10:50, Sport 13:05 (G5), PlusTime 14:40. Done 16:10. Usual swap day, pick-up in the evening.",
   secs:[
-   ["Morning",[T("tue-up","Up by 8:48",10),T("tue-out","Out of the door by 9:38 for the 9:48 (backup 9:18)",25,{ontime:1,key:1}),T("tue-swapbag","Swapping tonight? Swap bag packed before I leave",10)]],
+   ["Morning",[T("tue-up","Up by 8:48",10),T("tue-swapbag","Swapping tonight? Swap bag packed before I leave",10),T("tue-out","Out of the door by 9:38 for the 9:48 (backup 9:18)",25,{ontime:1,key:1})]],
    ["At college",[T("tue-sis","Study period: start this week's Business evidence",25,{key:1})]],
-   ["After college",AFTER("tue",[T("tue-gym","Gym session",25,{key:1}),T("tue-study","30 minutes on whatever is due next",20,{key:1}),T("tue-pickup","Swapping? Swap bag by the door, then set up my launch pad at the other end",10)])],
+   ["After college",AFTER("tue",[T("tue-study","30 minutes on whatever is due next",20,{key:1}),T("tue-gym","Gym session",25,{key:1}),T("tue-pickup","Swapping? Swap bag by the door, then set up my launch pad at the other end",10)])],
    ["House jobs",[WASH("tue")]],
    ["Before bed",BED("tue",[T("tue-psy","Psychology homework done and on Teams",20,{key:1})])]
   ]},
  3:{intro:"Psychology 10:50 (G118), Business 13:05 (G18), PlusTime 14:40. Done 16:10.",
   secs:[
-   ["Morning",[T("wed-up","Up by 8:48",10),T("wed-out","Out of the door by 9:38 for the 9:48 (backup 9:18)",25,{ontime:1,key:1}),T("wed-grab","Grab the bag from the launch pad",5)]],
+   ["Morning",[T("wed-up","Up by 8:48",10),T("wed-grab","Grab the bag from the launch pad",5),T("wed-out","Out of the door by 9:38 for the 9:48 (backup 9:18)",25,{ontime:1,key:1})]],
    ["After college",AFTER("wed",[T("wed-study","30 minutes on whatever is due next",20,{key:1})])],
-   ["House jobs",[T("wed-bins","Bins out: food waste, plus black one week, blue and green the next",15),WASH("wed")]],
-   ["Before bed",BED("wed",[T("wed-tut","Thursday starts earlier: Tutorial 9:45 (E2). Alarm earlier",5),T("wed-kit","Football kit ready for Thursday training",10)])]
+   ["House jobs",[WASH("wed"),T("wed-bins","Bins out: food waste, plus black one week, blue and green the next",15)]],
+   ["Before bed",BED("wed",[T("wed-kit","Football kit ready for Thursday training: boots, shin pads, red top",10)],{noFoot:1,alarm:"Alarm set earlier for Tutorial 9:45 (E2), phone on charge"})]
   ]},
  4:{intro:"Tutorial 9:45 (E2), Study period 10:50, Progression Planning 13:05, Psychology 14:40. Done 16:10. Football 7pm, Royston.",
   secs:[
-   ["Morning",[T("thu-up","Up by 7:48",10),T("thu-out","Out of the door by 8:38 for the 8:48 (backup 8:18)",25,{ontime:1,key:1}),T("thu-grab","Grab the bag from the launch pad",5)]],
+   ["Morning",[T("thu-up","Up by 7:48",10),T("thu-grab","Grab the bag from the launch pad",5),T("thu-out","Out of the door by 8:38 for the 8:48 (backup 8:18)",25,{ontime:1,key:1})]],
    ["At college",[T("thu-sis","Study period: finish this week's Business evidence",25,{key:1})]],
-   ["After college",AFTER("thu",[T("thu-train","Football kit by the door, at training before 7",10)])],
-   ["House jobs",[T("thu-binsin","Bins back in",10),WASH("thu")]],
-   ["Before bed",BED("thu",[T("thu-evid","Business evidence in the folder or on Teams, ready for 9am",30,{key:1})])]
+   ["After college",[T("thu-pad","Bag straight to the launch pad",5),T("thu-binsin","Bins back in",10),T("thu-teams","Check Teams, new deadlines into my calendar",10),T("thu-stay","Next 7 days: where am I sleeping? Check the Week tab, send My week if anything changed",10)]],
+   ["Football night",[WASH("thu"),T("thu-train","Football kit by the door, at training before 7",10)]],
+   ["Before bed",BED("thu",[T("thu-evid","Business evidence in the folder or on Teams, ready for 9am",30,{key:1})],{alarm:"Alarm set early for Business 9:00, phone on charge"})]
   ]},
  5:{intro:"Business 9:00 (G18), evidence checked. Sport 10:50 (G5), Study period 13:05. Done 14:35.",
   secs:[
-   ["Morning",[T("fri-up","Up by 7:18",10),T("fri-out","Out of the door by 8:08 for the 8:18 (backup 8:09)",25,{ontime:1,key:1}),T("fri-evid","Business evidence in the bag or on Teams",10)]],
+   ["Morning",[T("fri-up","Up by 7:18",10),T("fri-evid","Business evidence in the bag or on Teams",10),T("fri-out","Out of the door by 8:08 for the 8:18 (backup 8:09)",25,{ontime:1,key:1})]],
    ["At college",[T("fri-sis","Study period: one thing on Sport or Psychology",15)]],
    ["After college",AFTER("fri",[T("fri-plan","Anything due Monday? Decide when I'll do it this weekend",10)])],
    ["House jobs",[T("fri-cook","Help cook dinner",20,{key:1}),WASH("fri")]],
-   ["Before bed",[T("fri-work","Work clothes for Sunday are in the house I'm in",5),T("fri-alarm","Phone on charge",5),FOOT("fri")]]
+   ["Before bed",[T("fri-work","Work clothes for Sunday are in the house I'm in",5),FOOT("fri"),T("fri-alarm","Phone on charge",5)]]
   ]},
  6:{intro:"No college. Every other weekend is at Dad's.",
   secs:[
-   ["Day",[T("sat-block","One 45 minute block on whatever is due next week",25,{key:1}),T("sat-teams","Check Teams once",5),T("sat-stay","Next 7 days: where am I sleeping? Check the Week tab",10)]],
+   ["Day",[T("sat-teams","Check Teams once",5),T("sat-block","One 45 minute block on whatever is due next week",25,{key:1}),T("sat-stay","Next 7 days: where am I sleeping? Check the Week tab",10)]],
    ["House jobs",[T("sat-bath","Clean my bathroom: sink, loo, bath or shower, floor",25,{key:1}),WASH("sat")]],
-   ["Before bed",[T("sat-work","Work clothes out for Between Buns",5),T("sat-lift","Lift or train to work sorted",5),T("sat-alarm","Alarm set, phone on charge",5),FOOT("sat")]]
+   ["Before bed",[T("sat-work","Work clothes out for Between Buns",5),T("sat-lift","Lift or train to work sorted",5),FOOT("sat"),T("sat-alarm","Alarm set, phone on charge",5)]]
   ]},
  0:{intro:"Work at Between Buns, 11:00 to 4pm. Monday is an early start.",
   secs:[
    ["Morning",[T("sun-work","Up and out in time for work",20,{key:1})]],
-   ["Week ahead (10 mins with Pez)",[T("sun-cal","Look at the week: lessons, football, 6-a-side, which house",10),T("sun-teams","Check Teams: anything due this week?",10),T("sun-sis","Pick what goes in each study period",10),T("sun-stay","Pick Pez's or Grace's for my week, then send My week to everyone",15)]],
-   ["House jobs",[T("sun-room","Clean my room: washing in the basket, cups downstairs, floor clear, bed made",25,{key:1}),T("sun-cook","Help cook Sunday dinner",20),WASH("sun")]],
-   ["Before bed",BED("sun",[T("sun-6","6-a-side tomorrow, 8pm Baldock: kit and lift sorted",10)])]
+   ["After work",[T("sun-room","Clean my room: washing in the basket, cups downstairs, floor clear, bed made",25,{key:1}),T("sun-cook","Help cook Sunday dinner",20),WASH("sun")]],
+   ["Week ahead",[T("sun-cal","Look at the week: lessons, football, 6-a-side, which house",10),T("sun-teams","Check Teams: anything due this week?",10),T("sun-sis","Pick what goes in each study period",10),T("sun-stay","Pick Pez's or Grace's for my week, then send My week to everyone",15)]],
+   ["Before bed",BED("sun",[T("sun-6","6-a-side tomorrow, 8pm Baldock: kit and lift sorted",10)],{noFoot:1,alarm:"Alarm set early for Sport 9:00, phone on charge"})]
   ]}
 };
 function tasksFor(dw){const out=[];PLAN[dw].secs.forEach(s=>s[1].forEach(t=>out.push(t)));return out;}
